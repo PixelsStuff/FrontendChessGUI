@@ -17,6 +17,8 @@ fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"  # Default FEN 
 board = chess.Board(fen)  # Create a chess board from FEN
 square_size = 70       # Size of each square on the board
 board_size = square_size * 8  # Chessboard is 8x8 squares
+margin_x, margin_y = 40, 20
+backgroundcolor = pygame.Color("grey10")
 
 # Colors
 colors = [pygame.Color("white"), pygame.Color("cadetblue4")]
@@ -49,8 +51,8 @@ class Piece:
         else:
             col = self.square % 8
             row = 7 - (self.square // 8)
-            x = col * square_size
-            y = row * square_size
+            x = col * square_size + margin_x
+            y = row * square_size + margin_y
         image = pygame.transform.scale(self.image, (square_size, square_size))
         screen.blit(image, (x, y))
 
@@ -78,7 +80,7 @@ def draw_board():
     for row in range(8):
         for col in range(8):
             color = colors[(row + col) % 2]
-            rect = pygame.Rect(col * square_size, row * square_size, square_size, square_size)
+            rect = pygame.Rect(col * square_size + margin_x, row * square_size + margin_y, square_size, square_size)
             pygame.draw.rect(screen, color, rect)
 
     # Highlight legal moves if a piece is selected
@@ -87,8 +89,8 @@ def draw_board():
         for square in legal_moves:
             col = square % 8
             row = 7 - (square // 8)
-            x = col * square_size + square_size // 2
-            y = row * square_size + square_size // 2
+            x = col * square_size + square_size // 2 + margin_x
+            y = row * square_size + square_size // 2 + margin_y
             pygame.draw.circle(screen, dot_color, (x, y), 10)
 
     # Draw the pieces
@@ -98,8 +100,8 @@ def draw_board():
 # Convert mouse position to chess square index
 def get_square_from_mouse(pos):
     x, y = pos
-    col = x // square_size
-    row = 7 - (y // square_size)
+    col = (x - margin_x) // square_size
+    row = 7 - ((y - margin_y) // square_size)
     if 0 <= col < 8 and 0 <= row < 8:
         return row * 8 + col
     return None
@@ -117,7 +119,7 @@ def load_pgn(pgn_string):
         board.push(move)
     pieces = create_pieces_from_fen(board.fen())
     node = pgn_game
-    
+
 clock = pygame.time.Clock()
 running = True
 
@@ -167,7 +169,7 @@ while running:
             if selected_piece and selected_piece.dragging:
                 mouse_x, mouse_y = event.pos
 
-    screen.fill((0, 0, 0))  # Clear the screen
+    screen.fill(backgroundcolor)  # Clear the screen
     draw_board()            # Draw the chessboard and pieces
     pygame.display.flip()
     clock.tick(60)
