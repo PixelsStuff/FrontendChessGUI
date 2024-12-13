@@ -3,7 +3,7 @@ import pygame
 import chess
 import chess.pgn
 from io import StringIO
-
+import random
 # Initialize Pygame
 pygame.init()
 
@@ -106,10 +106,18 @@ def get_square_from_mouse(pos):
         return row * 8 + col
     return None
 
+def reset_board():
+    global board, pieces, pgn_game, node
+    board = chess.Board(fen)
+    pieces = create_pieces_from_fen(fen)
+    pgn_game = chess.pgn.Game()
+    node = pgn_game
+
 def piece_moved(move):
     global node
     node = node.add_variation(move)
     print(pgn_game)
+
 
 def load_pgn(pgn_string):
     global board, pieces, pgn_game, node
@@ -119,6 +127,8 @@ def load_pgn(pgn_string):
         board.push(move)
     pieces = create_pieces_from_fen(board.fen())
     node = pgn_game
+
+
 
 clock = pygame.time.Clock()
 running = True
@@ -154,12 +164,12 @@ while running:
                 square = get_square_from_mouse(event.pos)
                 if square is not None and chess.SQUARE_NAMES[square] in [move.uci()[2:] for move in board.legal_moves if move.from_square == selected_piece.square]:
                     move = chess.Move(selected_piece.square, square)
-                    piece_moved(move)
                     captured_piece = next((p for p in pieces if p.square == square), None)
                     if captured_piece:
                         pieces.remove(captured_piece)
                     board.push(move)
                     selected_piece.square = square
+                    piece_moved(move)
                 else:
                     selected_piece.square = selected_piece.original_pos
                 selected_piece.dragging = False
